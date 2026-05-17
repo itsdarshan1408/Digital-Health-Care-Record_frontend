@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Diagnostic Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px 15px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>HealthSphere Network Diagnostic</h1>
+    
+    <div class="test">
+        <h3>Server Status</h3>
+        <button onclick="testBackendHealth()">Test Backend Health</button>
+        <button onclick="testFrontendConnection()">Test Frontend Connection</button>
+        <div id="server-status"></div>
+    </div>
+
+    <div class="test">
+        <h3>Authentication Tests</h3>
+        <button onclick="testLogin()">Test Login API</button>
+        <button onclick="testRegister()">Test Register API</button>
+        <div id="auth-status"></div>
+    </div>
+
+    <div class="test">
+        <h3>CORS and Network</h3>
+        <button onclick="testCORS()">Test CORS</button>
+        <button onclick="testPreflight()">Test Preflight</button>
+        <div id="cors-status"></div>
+    </div>
+
+    <div class="test">
+        <h3>Console Logs</h3>
+        <div id="console-logs"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:4001/api';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('console-logs');
+            logDiv.innerHTML += `<div style="color: ${type === 'error' ? 'red' : 'blue'}">[${timestamp}] ${message}</div>`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        async function testBackendHealth() {
+            const statINRiv = document.getElementById('server-status');
+            try {
+                log('Testing backend health endpoint...');
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                statINRiv.innerHTML = `<div class="success">
+                    <strong>✅ Backend Health: OK</strong>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>`;
+                log('Backend health test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML = `<div class="error">
+                    <strong>❌ Backend Health: FAILED</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`Backend health test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        async function testFrontendConnection() {
+            const statINRiv = document.getElementById('server-status');
+            try {
+                log('Testing frontend connection...');
+                const response = await fetch('http://localhost:5173/');
+                
+                statINRiv.innerHTML += `<div class="success">
+                    <strong>✅ Frontend: Accessible (Status: ${response.status})</strong>
+                </div>`;
+                log('Frontend connection test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML += `<div class="error">
+                    <strong>❌ Frontend: Connection Failed</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`Frontend connection test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const statINRiv = document.getElementById('auth-status');
+            try {
+                log('Testing login API...');
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@healthsphere.com',
+                        password: 'demo123456'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                statINRiv.innerHTML = `<div class="success">
+                    <strong>✅ Login API: Working</strong>
+                    <pre>User: ${data.name} (${data.email})</pre>
+                </div>`;
+                log('Login API test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML = `<div class="error">
+                    <strong>❌ Login API: Failed</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`Login API test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        async function testRegister() {
+            const statINRiv = document.getElementById('auth-status');
+            try {
+                log('Testing register API...');
+                const timestamp = Date.now();
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: `Test User ${timestamp}`,
+                        email: `test${timestamp}@example.com`,
+                        password: 'password123'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                statINRiv.innerHTML += `<div class="success">
+                    <strong>✅ Register API: Working</strong>
+                    <pre>New User: ${data.name} (${data.email})</pre>
+                </div>`;
+                log('Register API test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML += `<div class="error">
+                    <strong>❌ Register API: Failed</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`Register API test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        async function testCORS() {
+            const statINRiv = document.getElementById('cors-status');
+            try {
+                log('Testing CORS configuration...');
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'http://localhost:5173'
+                    }
+                });
+                
+                statINRiv.innerHTML = `<div class="success">
+                    <strong>✅ CORS: Working</strong>
+                    <pre>Access-Control-Allow-Origin: ${response.headers.get('Access-Control-Allow-Origin') || 'Not set'}</pre>
+                </div>`;
+                log('CORS test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML = `<div class="error">
+                    <strong>❌ CORS: Failed</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`CORS test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        async function testPreflight() {
+            const statINRiv = document.getElementById('cors-status');
+            try {
+                log('Testing preflight request...');
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'OPTIONS',
+                });
+                
+                statINRiv.innerHTML += `<div class="success">
+                    <strong>✅ Preflight: Working</strong>
+                    <pre>Status: ${response.status}</pre>
+                </div>`;
+                log('Preflight test: SUCCESS');
+            } catch (error) {
+                statINRiv.innerHTML += `<div class="error">
+                    <strong>❌ Preflight: Failed</strong>
+                    <pre>Error: ${error.message}</pre>
+                </div>`;
+                log(`Preflight test: FAILED - ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.onload = function() {
+            log('Network diagnostic page loaded');
+            setTimeout(() => {
+                testBackendHealth();
+                setTimeout(() => testFrontendConnection(), 1000);
+            }, 500);
+        };
+    </script>
+</body>
+</html>

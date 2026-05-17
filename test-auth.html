@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Auth</title>
+</head>
+<body>
+    <h1>Test Authentication</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testRegister()">Test Register</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:4001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@healthsphere.com',
+                        password: 'demo123456'
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<pre>Login Result: ${JSON.stringify(data, null, 2)}</pre>`;
+                console.log('Login success:', data);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<pre>Login Error: ${error.message}</pre>`;
+                console.error('Login error:', error);
+            }
+        }
+
+        async function testRegister() {
+            try {
+                const response = await fetch('http://localhost:4001/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User Frontend',
+                        email: 'testfrontend@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<pre>Register Result: ${JSON.stringify(data, null, 2)}</pre>`;
+                console.log('Register success:', data);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<pre>Register Error: ${error.message}</pre>`;
+                console.error('Register error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
