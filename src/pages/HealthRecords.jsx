@@ -191,7 +191,7 @@ const HealthRecords = () => {
                         {file.filename}
                       </span>
                       <a
-                        href={`http://localhost:4001/${file.path}`}
+                        href={`${import.meta.env.VITE_SOCKET_URL || 'http://localhost:4001'}/${file.path}`}
                         download
                         className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                       >
